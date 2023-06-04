@@ -13,3 +13,8 @@
 --        | else
 --        	cur = take 2 plays
 --        	frame = frame:[(cur !! 0, cur !! 1, 0)]
+--
+main = do
+        putStrLn "Enter the plays:"
+        plays <- getLine
+        putStrLn plays
