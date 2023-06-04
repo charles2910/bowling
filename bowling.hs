@@ -21,3 +21,20 @@ main = do
         let plays_int = [read x :: Integer | x <- plays]
         putStrLn (show plays)
         putStrLn (show plays_int)
+        putStrLn (show (loadFrames plays_int))
+
+data Frame = Frame {
+    plays :: (Integer, Integer),
+    isSpare :: Bool,
+    isStrike :: Bool,
+    bonus :: Integer,
+    bonusPlay :: Integer
+} deriving Show
+
+loadFrames :: [Integer] -> [Frame]
+loadFrames [] = []
+loadFrames (h:t)
+        | h == 10 = Frame { plays = (10, 0), isSpare = False, isStrike = True, bonus = 1, bonusPlay = 0 } : loadFrames t
+        | h + (head t) == 10 && length (tail t) == 1 = Frame { plays = (h, head t), isSpare = True, isStrike = False, bonus = 1, bonusPlay = head (tail t) } : []
+        | h + (head t) == 10 = Frame { plays = (h, head t), isSpare = True, isStrike = False, bonus = 1, bonusPlay = 0 } : loadFrames (tail t)
+        | otherwise = Frame { plays = (h, head t), isSpare = False, isStrike = False, bonus = 0, bonusPlay = 0 } : loadFrames (tail t)
