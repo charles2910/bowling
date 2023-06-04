@@ -18,4 +18,6 @@ main = do
         putStrLn "Enter the plays:"
         plays_string <- getLine
         let plays = words plays_string
+        let plays_int = [read x :: Integer | x <- plays]
         putStrLn (show plays)
+        putStrLn (show plays_int)
