@@ -16,5 +16,6 @@
 --
 main = do
         putStrLn "Enter the plays:"
-        plays <- getLine
-        putStrLn plays
+        plays_string <- getLine
+        let plays = words plays_string
+        putStrLn (show plays)
