@@ -22,7 +22,7 @@ main = do
         -- putStrLn (show plays)
         -- putStrLn (show plays_int)
         let frames = checkEndFrame (loadFrames plays_int)
-        putStrLn (show frames)
+        -- putStrLn (show frames)
         putStrLn (printFrames frames ++ show (calcPoints frames))
 
 data Play = Normal | Strike | Spare
@@ -47,6 +47,7 @@ loadFrames (h:t)
 checkEndFrame :: [Frame] -> [Frame]
 checkEndFrame frames
         | length frames == 12 = (take 9 frames) ++ [Frame { plays = (fst (plays (frames !! 9)), fst (plays (frames !! 10))), playType = playType (frames !! 9), bonus = 1, bonusPlay = True, bonusPlayScore = fst (plays (frames !! 11)) }]
+        | length frames == 11 = (take 9 frames) ++ [Frame { plays = (fst (plays (frames !! 9)), fst (plays (frames !! 10))), playType = playType (frames !! 9), bonus = 1, bonusPlay = True, bonusPlayScore = snd (plays (frames !! 10)) }]
         | otherwise = frames
 
 printFrames :: [Frame] -> [Char]
