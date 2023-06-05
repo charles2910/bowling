@@ -53,12 +53,13 @@ checkEndFrame frames
 printFrames :: [Frame] -> [Char]
 printFrames [] = []
 printFrames (h:t)
-        | bonusPlay h == True  = printPlay (plays h) ++ " " ++ printBonusPlay (fst $ plays h, snd $ plays h, bonusPlayScore h) ++ " | " ++ printFrames t
-        | bonusPlay h == False = printPlay (plays h)  ++ " | " ++ printFrames t
+        | bonusPlay h == True  = printPlay (fst (plays h), snd (plays h), bonusPlay h) ++ " " ++ printBonusPlay (fst $ plays h, snd $ plays h, bonusPlayScore h) ++ " | " ++ printFrames t
+        | bonusPlay h == False = printPlay (fst (plays h), snd (plays h), bonusPlay h)  ++ " | " ++ printFrames t
 
-printPlay :: (Integer, Integer) -> [Char]
-printPlay (p1, p2)
-        | p1 == 10 && p2 == 0 = "X _"
+printPlay :: (Integer, Integer, Bool) -> [Char]
+printPlay (p1, p2, bonusPlay)
+        | p1 == 10 && p2 == 0 && bonusPlay == False = "X _"
+        | p1 == 10 && p2 == 0 && bonusPlay == True = "X " ++ show p2
         | p1 + p2 == 10 = show p1 ++ " /"
         | p1 + p2 == 20 = "X X"
         | p1 + p2 > 10 = "X " ++ show p2
@@ -67,6 +68,7 @@ printPlay (p1, p2)
 printBonusPlay :: (Integer, Integer, Integer) -> [Char]
 printBonusPlay (p1, p2, bonus) 
         | p2 == 10 && bonus == 10 = "X"
+        | p2 + bonus > 10 && bonus == 10 = "X"
         | p1 == 10 && p2 + bonus == 10 = "/"
         | otherwise = show bonus
 
@@ -76,11 +78,12 @@ calcPoints (h:t)
         | playType h == Normal = sumPlayScore (plays h) + bonusPlayScore h + calcPoints t
         | playType h == Spare && bonusPlay h == False = sumPlayScore (plays h)  + fst (plays (head t)) +  calcPoints t
         | playType h == Spare && bonusPlay h == True = sumPlayScore (plays h)  + bonusPlayScore h +  calcPoints t
+        | playType h == Strike && bonusPlay h == True = 10 + sumPlayScore (getNextTwoScores (h:t))  + calcPoints t
         | playType h == Strike = 10 + sumPlayScore (getNextTwoScores (h:t)) + calcPoints t
 
 sumPlayScore :: (Integer, Integer) -> Integer
 sumPlayScore (p1, p2)
-        | p1 == 10 = 10
+        | p1 == 10 && p2 == 0 = 10
         | p1 + p2 == 10 = 10
         | otherwise = p1 + p2
 
