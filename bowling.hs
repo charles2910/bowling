@@ -15,38 +15,56 @@
 --        	frame = frame:[(cur !! 0, cur !! 1, 0)]
 --
 main = do
-        putStrLn "Enter the plays:"
+        -- putStrLn "Enter the plays:"
         plays_string <- getLine
         let plays = take 21 (words plays_string)
         let plays_int = [read x :: Integer | x <- plays]
-        putStrLn (show plays)
-        putStrLn (show plays_int)
-        --putStrLn (show (loadFrames plays_int))
-        putStrLn ((printFrames (loadFrames plays_int)))
+        -- putStrLn (show plays)
+        -- putStrLn (show plays_int)
+        -- putStrLn (show (loadFrames plays_int))
+        putStrLn (printFrames (loadFrames plays_int) ++ show (calcPoints (loadFrames plays_int)))
 
 data Play = Normal | Strike | Spare
-        deriving Show
+        deriving (Show, Eq)
 
 data Frame = Frame {
     plays :: (Integer, Integer),
     playType :: Play,
     bonus :: Integer,
-    bonusPlay :: Integer
+    bonusPlay :: Bool,
+    bonusPlayScore :: Integer
 } deriving Show
 
 loadFrames :: [Integer] -> [Frame]
 loadFrames [] = []
 loadFrames (h:t)
-        | h == 10 = Frame { plays = (10, 0), playType = Strike, bonus = 1, bonusPlay = 0 } : loadFrames t
-        | h + (head t) == 10 && length (tail t) == 1 = Frame { plays = (h, head t), playType = Spare, bonus = 1, bonusPlay = head (tail t) } : []
-        | h + (head t) == 10 = Frame { plays = (h, head t), playType = Spare, bonus = 1, bonusPlay = 0 } : loadFrames (tail t)
-        | otherwise = Frame { plays = (h, head t), playType = Normal, bonus = 0, bonusPlay = 0 } : loadFrames (tail t)
+        | h == 10 = Frame { plays = (10, 0), playType = Strike, bonus = 1, bonusPlay = False, bonusPlayScore = 0 } : loadFrames t
+        | h + (head t) == 10 && length (tail t) == 1 = Frame { plays = (h, head t), playType = Spare, bonus = 1, bonusPlay = True, bonusPlayScore = head (tail t) } : []
+        | h + (head t) == 10 = Frame { plays = (h, head t), playType = Spare, bonus = 1, bonusPlay = False, bonusPlayScore = 0 } : loadFrames (tail t)
+        | otherwise = Frame { plays = (h, head t), playType = Normal, bonus = 0, bonusPlay = False, bonusPlayScore = 0 } : loadFrames (tail t)
 
 printFrames :: [Frame] -> [Char]
 printFrames [] = []
-printFrames (h:t) = case (playType h) of
-        Normal -> show (fst $ plays h) ++ " " ++ show (snd $ plays h) ++ " | " ++ printFrames t
-        Spare -> show (fst $ plays h) ++ " " ++ "/" ++ " | " ++ printFrames t
-        Strike -> "X" ++ " " ++ "_" ++ " | " ++ printFrames t
+printFrames (h:t)
+        | bonusPlay h == True  = printPlay (plays h) ++ " " ++ show (bonusPlayScore h) ++ " | " ++ printFrames t
+        | bonusPlay h == False = printPlay (plays h)  ++ " | " ++ printFrames t
 
+printPlay :: (Integer, Integer) -> [Char]
+printPlay (p1, p2)
+        | p1 == 10 = "X _"
+        | p1 + p2 == 10 = show p1 ++ " /"
+        | otherwise = show p1 ++ " " ++ show p2
 
+calcPoints :: [Frame] -> Integer
+calcPoints [] = 0
+calcPoints (h:t)
+        | playType h == Normal = sumPlayScore (plays h) + bonusPlayScore h + calcPoints t
+        | playType h == Spare && bonusPlay h == False = sumPlayScore (plays h)  + fst (plays (head t)) +  calcPoints t
+        | playType h == Spare && bonusPlay h == True = sumPlayScore (plays h)  + bonusPlayScore h +  calcPoints t
+        | playType h == Strike = 10 + fst (plays (head t)) + snd (plays (head t)) + calcPoints t
+
+sumPlayScore :: (Integer, Integer) -> Integer
+sumPlayScore (p1, p2)
+        | p1 == 10 = 10
+        | p1 + p2 == 10 = 10
+        | otherwise = p1 + p2
